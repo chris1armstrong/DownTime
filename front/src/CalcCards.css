@@ -1,0 +1,32 @@
+@import '~antd/dist/antd.css';
+
+.ant-card {
+  margin: 2px;
+}
+
+.centering {
+  margin: auto;
+  width: 60%;
+}
+
+.smallContainer {
+  margin: auto;
+  float: left;
+  max-width: 600px;
+  width: 50%;
+  padding: 20px;
+  text-align: left;
+}
+
+.footContainer {
+  margin: auto;
+  width: 100%;
+  float: left;
+  padding: 20px;
+}
+
+@media screen and (max-width: 767px) {
+  .centering {
+    width: 100%;
+  }
+}
