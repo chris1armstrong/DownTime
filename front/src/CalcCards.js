@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Card, InputNumber, Input, Select, Statistic } from 'antd';
 import './CalcCards.css';
 
-//const sizeConversion = [{"GB":1000000},{"MB":1000},{"KB":1}];
+const sizeConversion = {"GB":1000000000,"MB":1000000,"KB":1000};
 //const timeConversion = [{"hrs":3600},{"mins":60},{"secs":1}];
 
 class CalcCards extends Component{
@@ -22,34 +22,75 @@ class CalcCards extends Component{
       remainingTime: "N/A",
       remainingPerTime: "N/A",
       percent: 50,
+      percentDone: 0,
     };
   }
 
-totalSizeUnitsChange = (value) => {
-  this.setState({
-    totalSizeUnits: value
-  })
+componentDidUpdate() {
+  console.log(this.state);
 }
 
-currentSizeUnitsChange = (value) => {
+updatePercentage = () => {
   this.setState({
-    currentSizeUnits: value
-  })
+    percentDone: ((this.state.currentSize/this.state.totalSize)*100).toFixed(4)
+  });
+}
+
+totalSizeUnitsChange = async (value) => {
+  let updateVal = this.state.totalSize/sizeConversion[this.state.totalSizeUnits];
+  await this.setState({
+    totalSizeUnits: value,
+    totalSize: updateVal*sizeConversion[value]
+  });
+  this.updatePercentage();
+}
+
+totalSizeChange = async (value) => {
+  await this.setState({
+    totalSize: value*sizeConversion[this.state.totalSizeUnits]
+  });
+  this.updatePercentage();
+}
+
+currentSizeUnitsChange = async (value) => {
+  let updateVal = this.state.currentSize/sizeConversion[this.state.currentSizeUnits];
+  await this.setState({
+    currentSizeUnits: value,
+    currentSize: updateVal*sizeConversion[value],
+  });
+  this.updatePercentage();
+}
+
+currentSizeChange = async (value) => {
+  let updateVal = value*sizeConversion[this.state.currentSizeUnits];
+  await this.setState({
+    currentSize: updateVal,
+  });
+  this.updatePercentage();
+}
+
+getRemaining = () => {
+  let totalBytes = this.totalSize*sizeConversion(this.totalSizeUnits);
+  let currentBytes = this.currentSize*sizeConversion(this.currentSizeUnits);
+  let size = totalBytes - currentBytes;
+  let order = "B";
+  if (size > sizeConversion("GB")) {
+    order = "GB";
+  } else if (size > sizeConversion("MB")) {
+    order = "MB";
+  } else if (size > sizeConversion("KB")) {
+    order = "KB";
+  }
+  return order;
 }
 
 render() {
-  const biggus = (
-    <div>
-      Time to fin
-      <InputNumber defaultValue={50} min={0} max={100} onChange={(value) => {this.setState({percent:value})}}/>
-      %
-    </div>);
   return (
     <div className="centering">
       <div className="smallContainer">
         <Card title="Download size" size="small">
           <Input.Group compact>
-            <InputNumber min={0} defaultValue={0} onChange={(value) => {this.setState({totalSize:value})}}/>
+            <InputNumber min={0} defaultValue={0} onChange={this.totalSizeChange}/>
             <Select defaultValue={this.state.totalSizeUnits} onChange={this.totalSizeUnitsChange}>
               <Select.Option value="KB">KB</Select.Option>
               <Select.Option value="MB">MB</Select.Option>
@@ -59,12 +100,15 @@ render() {
         </Card>
         <Card title="Currently downloaded/Percent" size="small">
           <Input.Group compact>
-            <InputNumber min={0} defaultValue={0} onChange={(value) => {this.setState({currentSize:value})}}/>
+            <InputNumber min={0} defaultValue={0} onChange={this.currentSizeChange}/>
             <Select defaultValue={this.state.currentSizeUnits} onChange={this.currentSizeUnitsChange}>
               <Select.Option value="KB">KB</Select.Option>
               <Select.Option value="MB">MB</Select.Option>
               <Select.Option value="GB">GB</Select.Option>
             </Select>
+            <div className="percentContainer">
+              {this.state.percentDone}%
+            </div>
           </Input.Group>
         </Card>
         <Card title="Speed" size="small">
@@ -86,13 +130,18 @@ render() {
         </Card>
         <Card size="small">
           <Statistic
-            title="Time to Fin"
+            title="Time to finish"
             value={this.state.remainingTime}
           />
         </Card>
         <Card size="small">
           <Statistic
-            title={biggus}
+            title={(
+              <div>
+                Time to fin
+                <InputNumber style={{marginRight:'2px',marginLeft:'2px'}} defaultValue={50} min={0} max={100} onChange={(value) => {this.setState({percent:value})}}/>
+                %
+              </div>)}
             value={this.state.remainingPerTime}
           />
         </Card>
