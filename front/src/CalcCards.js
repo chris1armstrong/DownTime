@@ -23,6 +23,7 @@ class CalcCards extends Component{
       remainingPerTime: "N/A",
       percent: 50,
       percentDone: 0,
+      percentRemaining: 0,
     };
   }
 
@@ -31,8 +32,13 @@ componentDidUpdate() {
 }
 
 updatePercentage = () => {
+  let perDone = ((this.state.currentSize/this.state.totalSize)*100).toFixed(4);
+  let perRemain = 100 - perDone;
+  let sizeRemain = this.state.totalSize-this.state.currentSize;
   this.setState({
-    percentDone: ((this.state.currentSize/this.state.totalSize)*100).toFixed(4)
+    percentDone: perDone,
+    remainingSize: sizeRemain,
+    percentRemaining: perRemain,
   });
 }
 
@@ -70,18 +76,19 @@ currentSizeChange = async (value) => {
 }
 
 getRemaining = () => {
-  let totalBytes = this.totalSize*sizeConversion(this.totalSizeUnits);
-  let currentBytes = this.currentSize*sizeConversion(this.currentSizeUnits);
-  let size = totalBytes - currentBytes;
+  let size = this.state.remainingSize;
   let order = "B";
-  if (size > sizeConversion("GB")) {
+  if (size > sizeConversion["GB"]) {
+    size = size/sizeConversion["GB"]
     order = "GB";
-  } else if (size > sizeConversion("MB")) {
+  } else if (size > sizeConversion["MB"]) {
+    size = size/sizeConversion["MB"]
     order = "MB";
-  } else if (size > sizeConversion("KB")) {
+  } else if (size > sizeConversion["KB"]) {
+    size = size/sizeConversion["KB"]
     order = "KB";
   }
-  return order;
+  return size + order + " " + this.state.percentRemaining + "%";
 }
 
 render() {
@@ -125,7 +132,7 @@ render() {
         <Card size="small">
           <Statistic
             title="Remaining/Percent"
-            value={this.state.remainingSize}
+            value={this.getRemaining()}
           />
         </Card>
         <Card size="small">
