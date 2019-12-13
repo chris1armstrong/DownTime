@@ -2,28 +2,29 @@ import React, { Component } from 'react';
 import { Card, InputNumber, Input, Select, Statistic } from 'antd';
 import './CalcCards.css';
 
-const sizeConversion = {"GB":1000000000,"MB":1000000,"KB":1000};
-//const timeConversion = [{"hrs":3600},{"mins":60},{"secs":1}];
+const sizeConversion = {"GB":1000000000,"MB":1000000,"KB":1000}; //to Bytes
+const timeConversion = {"hrs":3600,"mins":60,"secs":1}; //to seconds
+const speedConversion = {"KB/s":1000,"MB/s":1000000}; //to Bytes/s
 
 class CalcCards extends Component{
   constructor(props) {
     super(props);
     this.state = {
-      totalSize: 0,
-      totalSizeUnits: "GB",
-      currentSize: 0,
-      currentSizeUnits: "GB",
-      speed: 0,
-      speedUnits: "KB/s",
-      time: 0,
-      timeUnits: "hrs",
-      end: "N/A",
-      remainingSize: "N/A",
-      remainingTime: "N/A",
-      remainingPerTime: "N/A",
-      percent: 50,
-      percentDone: 0,
-      percentRemaining: 0,
+      totalSize: 0,           //Bytes
+      totalSizeUnits: "GB",   //Current units
+      currentSize: 0,         //Bytes
+      currentSizeUnits: "GB", //Current units
+      speed: 0,               //B/s
+      speedUnits: "KB/s",     //Current units
+      remainingSize: "N/A",   //Bytes
+      remainingTime: "N/A",   //Seconds
+      remainingPerTime: "N/A",//Bytes
+      percent: 50,            //[0-100]
+      percentDone: 0,         //Calced
+      percentRemaining: 0,    //Calced
+      time: 0,                //Seconds
+      timeUnits: "hrs",       //Current units
+      end: "N/A",             //Bytes
     };
   }
 
@@ -49,6 +50,7 @@ totalSizeUnitsChange = async (value) => {
     totalSize: updateVal*sizeConversion[value]
   });
   this.updatePercentage();
+  this.updateTimes();
 }
 
 totalSizeChange = async (value) => {
@@ -56,6 +58,7 @@ totalSizeChange = async (value) => {
     totalSize: value*sizeConversion[this.state.totalSizeUnits]
   });
   this.updatePercentage();
+  this.updateTimes();
 }
 
 currentSizeUnitsChange = async (value) => {
@@ -65,6 +68,7 @@ currentSizeUnitsChange = async (value) => {
     currentSize: updateVal*sizeConversion[value],
   });
   this.updatePercentage();
+  this.updateTimes();
 }
 
 currentSizeChange = async (value) => {
@@ -73,6 +77,7 @@ currentSizeChange = async (value) => {
     currentSize: updateVal,
   });
   this.updatePercentage();
+  this.updateTimes();
 }
 
 getRemaining = () => {
@@ -89,6 +94,33 @@ getRemaining = () => {
     order = "KB";
   }
   return size + order + " " + this.state.percentRemaining + "%";
+}
+
+updateTimes = () => {
+  let time = this.state.remainingSize/this.state.speed; //Seconds remaining at current speed
+  let hours = Math.floor(time/timeConversion["hrs"]);
+  time = time%timeConversion["hrs"];
+  let minutes = Math.floor(time/timeConversion["mins"]);
+  let seconds = time%timeConversion["mins"];
+  this.setState({
+    remainingTime: hours + "hrs " + minutes + "mins " + seconds + "secs"
+  });
+}
+
+speedChange = async (value) => {
+  await this.setState({
+    speed: value*speedConversion[this.state.speedUnits]
+  });
+  this.updateTimes();
+}
+
+speedUnitsChange = async (value) => {
+  let updateVal = (this.state.speed/speedConversion[this.state.speedUnits])*speedConversion[value];
+  await this.setState({
+    speedUnits: value,
+    speed: updateVal
+  });
+  this.updateTimes();
 }
 
 render() {
@@ -120,10 +152,10 @@ render() {
         </Card>
         <Card title="Speed" size="small">
           <Input.Group compact>
-            <InputNumber min={0} defaultValue={0} onChange={(value) => {this.setState({speed:value})}}/>
+            <InputNumber min={0} defaultValue={0} onChange={this.speedChange}/>
             <Select defaultValue={this.state.speedUnits} onChange={this.speedUnitsChange}>
-              <Select.Option value="KB">KB/s</Select.Option>
-              <Select.Option value="MB">MB/s</Select.Option>
+              <Select.Option value="KB/s">KB/s</Select.Option>
+              <Select.Option value="MB/s">MB/s</Select.Option>
             </Select>
           </Input.Group>
         </Card>
@@ -145,7 +177,7 @@ render() {
           <Statistic
             title={(
               <div>
-                Time to fin
+                Time to reach
                 <InputNumber style={{marginRight:'2px',marginLeft:'2px'}} defaultValue={50} min={0} max={100} onChange={(value) => {this.setState({percent:value})}}/>
                 %
               </div>)}
