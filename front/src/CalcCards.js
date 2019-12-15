@@ -135,10 +135,22 @@ getTimeToReach = () => {
   let speed = this.state.speed;
   let percentage = this.state.percent;
   let time = (total*percentage/100-current)/speed; //Seconds remaining at current speed
-  let hours = Math.floor(time/timeConversion["hrs"]);
-  time = time%timeConversion["hrs"];
-  let minutes = Math.floor(time/timeConversion["mins"]);
-  let seconds = (time%timeConversion["mins"]).toFixed(0);
+  let signage = true;
+  if (time < 0) {signage = false}
+  let hours = 0;
+  let minutes = 0;
+  let seconds = 0;
+  if (signage) {
+    hours = Math.floor(time/timeConversion["hrs"]);
+    time = time%timeConversion["hrs"];
+    minutes = Math.floor(time/timeConversion["mins"]);
+    seconds = (time%timeConversion["mins"]).toFixed(0);
+  } else {
+    hours = Math.ceil(time/timeConversion["hrs"]);
+    time = time%timeConversion["hrs"];
+    minutes = Math.ceil(time/timeConversion["mins"]);
+    seconds = (time%timeConversion["mins"]).toFixed(0);
+  }
   return hours + "hrs " + minutes + "mins " + seconds + "secs";
 }
 
