@@ -142,6 +142,32 @@ getTimeToReach = () => {
   return hours + "hrs " + minutes + "mins " + seconds + "secs";
 }
 
+timeUnitsChange = (value) => {
+  this.setState({
+    timeUnits: value
+  })
+}
+
+potentialDownload = () => {
+  let units = this.state.timeUnits;
+  let time = this.state.timeSize;
+  let seconds = time*timeConversion[units];
+  let speed = this.state.speed;
+  let bytes = speed*seconds;
+  let order = "B";
+  if (bytes > sizeConversion["GB"]) {
+    bytes = bytes/sizeConversion["GB"];
+    order = "GB";
+  } else if (bytes > sizeConversion["MB"]) {
+    bytes = bytes/sizeConversion["MB"];
+    order = "MB";
+  } else if (bytes > sizeConversion["KB"]) {
+    bytes = bytes/sizeConversion["KB"];
+    order = "KB";
+  }
+  return bytes.toFixed(2) + order;
+}
+
 render() {
   return (
     <div className="centering">
@@ -217,7 +243,7 @@ render() {
           </Input.Group> 
           I can download
           <br/>
-          {this.state.end}
+          {this.potentialDownload()}
         </Card>
       </div>
     </div>
