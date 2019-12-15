@@ -16,7 +16,7 @@ class CalcCards extends Component{
       currentSizeUnits: "GB", //Current units
       speed: 0,               //B/s
       speedUnits: "KB/s",     //Current units
-      remainingSize: "N/A",   //Bytes
+      remainingSize: 0,   //Bytes
       remainingTime: "N/A",   //Seconds
       remainingPerTime: "N/A",//Bytes
       percent: 50,            //[0-100]
@@ -27,13 +27,13 @@ class CalcCards extends Component{
       end: "N/A",             //Bytes
     };
   }
-
+/*
 componentDidUpdate() {
   console.log(this.state);
-}
+}*/
 
 updatePercentage = () => {
-  let perDone = ((this.state.currentSize/this.state.totalSize)*100).toFixed(4);
+  let perDone = ((this.state.currentSize/this.state.totalSize)*100).toFixed(2);
   let perRemain = 100 - perDone;
   let sizeRemain = this.state.totalSize-this.state.currentSize;
   this.setState({
@@ -84,16 +84,16 @@ getRemaining = () => {
   let size = this.state.remainingSize;
   let order = "B";
   if (size > sizeConversion["GB"]) {
-    size = size/sizeConversion["GB"]
+    size = size/sizeConversion["GB"];
     order = "GB";
   } else if (size > sizeConversion["MB"]) {
-    size = size/sizeConversion["MB"]
+    size = size/sizeConversion["MB"];
     order = "MB";
   } else if (size > sizeConversion["KB"]) {
-    size = size/sizeConversion["KB"]
+    size = size/sizeConversion["KB"];
     order = "KB";
   }
-  return size + order + " " + this.state.percentRemaining + "%";
+  return size.toFixed(2) + order + " " + this.state.percentRemaining.toFixed(2) + "%";
 }
 
 updateTimes = () => {
@@ -101,7 +101,7 @@ updateTimes = () => {
   let hours = Math.floor(time/timeConversion["hrs"]);
   time = time%timeConversion["hrs"];
   let minutes = Math.floor(time/timeConversion["mins"]);
-  let seconds = time%timeConversion["mins"];
+  let seconds = (time%timeConversion["mins"]).toFixed(0);
   this.setState({
     remainingTime: hours + "hrs " + minutes + "mins " + seconds + "secs"
   });
@@ -121,6 +121,25 @@ speedUnitsChange = async (value) => {
     speed: updateVal
   });
   this.updateTimes();
+}
+
+percentChange = (percentage) => {
+  this.setState({
+    percent: percentage,
+  });
+}
+
+getTimeToReach = () => {
+  let current = this.state.currentSize;
+  let total = this.state.totalSize;
+  let speed = this.state.speed;
+  let percentage = this.state.percent;
+  let time = (total*percentage/100-current)/speed; //Seconds remaining at current speed
+  let hours = Math.floor(time/timeConversion["hrs"]);
+  time = time%timeConversion["hrs"];
+  let minutes = Math.floor(time/timeConversion["mins"]);
+  let seconds = (time%timeConversion["mins"]).toFixed(0);
+  return hours + "hrs " + minutes + "mins " + seconds + "secs";
 }
 
 render() {
@@ -178,10 +197,10 @@ render() {
             title={(
               <div>
                 Time to reach
-                <InputNumber style={{marginRight:'2px',marginLeft:'2px'}} defaultValue={50} min={0} max={100} onChange={(value) => {this.setState({percent:value})}}/>
+                <InputNumber style={{marginRight:'2px',marginLeft:'2px'}} defaultValue={50} min={0} max={100} onChange={this.percentChange}/>
                 %
               </div>)}
-            value={this.state.remainingPerTime}
+            value={this.getTimeToReach()}
           />
         </Card>
       </div>
