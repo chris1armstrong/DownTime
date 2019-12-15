@@ -16,31 +16,23 @@ class CalcCards extends Component{
       currentSizeUnits: "GB", //Current units
       speed: 0,               //B/s
       speedUnits: "KB/s",     //Current units
-      remainingSize: 0,   //Bytes
-      remainingTime: "N/A",   //Seconds
-      remainingPerTime: "N/A",//Bytes
       percent: 50,            //[0-100]
-      percentDone: 0,         //Calced
-      percentRemaining: 0,    //Calced
       time: 0,                //Seconds
       timeUnits: "hrs",       //Current units
       end: "N/A",             //Bytes
     };
   }
-/*
-componentDidUpdate() {
-  console.log(this.state);
-}*/
 
-updatePercentage = () => {
-  let perDone = ((this.state.currentSize/this.state.totalSize)*100).toFixed(2);
-  let perRemain = 100 - perDone;
-  let sizeRemain = this.state.totalSize-this.state.currentSize;
-  this.setState({
-    percentDone: perDone,
-    remainingSize: sizeRemain,
-    percentRemaining: perRemain,
-  });
+getRemainingSize = () => {
+  return this.state.totalSize-this.state.currentSize;
+}
+
+getPercentRemaining = () => {
+  return 100 - this.getPercentDone();
+}
+
+getPercentDone = () => {
+  return ((this.state.currentSize/this.state.totalSize)*100).toFixed(2);
 }
 
 totalSizeUnitsChange = async (value) => {
@@ -49,16 +41,12 @@ totalSizeUnitsChange = async (value) => {
     totalSizeUnits: value,
     totalSize: updateVal*sizeConversion[value]
   });
-  this.updatePercentage();
-  this.updateTimes();
 }
 
 totalSizeChange = async (value) => {
   await this.setState({
     totalSize: value*sizeConversion[this.state.totalSizeUnits]
   });
-  this.updatePercentage();
-  this.updateTimes();
 }
 
 currentSizeUnitsChange = async (value) => {
@@ -67,8 +55,6 @@ currentSizeUnitsChange = async (value) => {
     currentSizeUnits: value,
     currentSize: updateVal*sizeConversion[value],
   });
-  this.updatePercentage();
-  this.updateTimes();
 }
 
 currentSizeChange = async (value) => {
@@ -76,12 +62,10 @@ currentSizeChange = async (value) => {
   await this.setState({
     currentSize: updateVal,
   });
-  this.updatePercentage();
-  this.updateTimes();
 }
 
 getRemaining = () => {
-  let size = this.state.remainingSize;
+  let size = this.getRemainingSize();
   let order = "B";
   if (size > sizeConversion["GB"]) {
     size = size/sizeConversion["GB"];
@@ -93,25 +77,22 @@ getRemaining = () => {
     size = size/sizeConversion["KB"];
     order = "KB";
   }
-  return size.toFixed(2) + order + " " + this.state.percentRemaining.toFixed(2) + "%";
+  return size.toFixed(2) + order + " " + this.getPercentRemaining().toFixed(2) + "%";
 }
 
-updateTimes = () => {
-  let time = this.state.remainingSize/this.state.speed; //Seconds remaining at current speed
+getRemainingTime = () => {
+  let time = this.getRemainingSize()/this.state.speed; //Seconds remaining at current speed
   let hours = Math.floor(time/timeConversion["hrs"]);
   time = time%timeConversion["hrs"];
   let minutes = Math.floor(time/timeConversion["mins"]);
   let seconds = (time%timeConversion["mins"]).toFixed(0);
-  this.setState({
-    remainingTime: hours + "hrs " + minutes + "mins " + seconds + "secs"
-  });
+  return hours + "hrs " + minutes + "mins " + seconds + "secs";
 }
 
 speedChange = async (value) => {
   await this.setState({
     speed: value*speedConversion[this.state.speedUnits]
   });
-  this.updateTimes();
 }
 
 speedUnitsChange = async (value) => {
@@ -120,7 +101,6 @@ speedUnitsChange = async (value) => {
     speedUnits: value,
     speed: updateVal
   });
-  this.updateTimes();
 }
 
 percentChange = (percentage) => {
@@ -157,7 +137,7 @@ getTimeToReach = () => {
 timeUnitsChange = (value) => {
   this.setState({
     timeUnits: value
-  })
+  });
 }
 
 potentialDownload = () => {
@@ -203,7 +183,7 @@ render() {
               <Select.Option value="GB">GB</Select.Option>
             </Select>
             <div className="percentContainer">
-              {this.state.percentDone}%
+              {this.getPercentDone()}%
             </div>
           </Input.Group>
         </Card>
@@ -227,7 +207,7 @@ render() {
         <Card size="small">
           <Statistic
             title="Time to finish"
-            value={this.state.remainingTime}
+            value={this.getRemainingTime()}
           />
         </Card>
         <Card size="small">
