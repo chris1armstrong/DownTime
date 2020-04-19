@@ -30,7 +30,7 @@
   margin-top: 4px;
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (max-width: 900px) {
   .centering {
     width: 100%;
   }
